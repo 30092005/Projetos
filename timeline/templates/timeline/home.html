@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load l10n %}
+{% block content %}
+<h2>Home</h2>
+
+    <form method="post" class="row g-3">
+        {% csrf_token %}
+        <div class="col-md-4">
+            <label for="data_inicial" class="form-label">Data Inicial</label>
+            <input type="date" name="data_inicial" id="data_inicial" class="form-control" required>
+        </div>
+        <div class="col-md-4">
+            <label for="dias_corridos" class="form-label">Dias Corridos</label>
+            <input type="number" name="dias_corridos" id="dias_corridos" class="form-control" required>
+        </div>
+        <div class="col-md-4">
+            <label for="estado" class="form-label">Estado</label>
+            <select name="estado" id="estado" class="form-select" required>
+                <option value="">Selecione o Estado</option>
+                {% for uf in municipios.keys %}
+                    <option value="{{ uf }}">{{ uf }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label for="municipio" class="form-label">Município</label>
+            <select name="municipio" id="municipio" class="form-select">
+                <option value="">Selecione o Município</option>
+            </select>
+        </div>
+        <div class="col-12">
+            <button type="submit" class="btn btn-primary mt-3">Calcular Prazo</button>
+        </div>
+    </form>
+
+    {% if resultado %}
+        <div class="mt-5">
+            <h4 class="mb-3">📅 Data Final: {{ resultado|date:"d/m/Y" }}</h4>
+            <h5>Dias úteis contados:</h5>
+            <ul class="list-group mt-2">
+                {% for dia in dias_validos %}
+                    <li class="list-group-item d-flex justify-content-between list-group-item-success">
+                        <span>{{ forloop.counter }}º dia</span>
+                        <strong>{{ dia|date:"l, d/m/Y" }}</strong>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    {% if todos_os_dias %}
+        <div class="mt-5">
+            <h5>Todos os dias analisados:</h5>
+            <ul class="list-group mt-3">
+                {% for dia in todos_os_dias %}
+                    <li class="list-group-item d-flex justify-content-between
+                        {% if dia.tipo == 'feriado' %} list-group-item-danger
+                        {% elif dia.tipo == 'fim_de_semana' %} list-group-item-warning
+                        {% else %} list-group-item-success {% endif %}">
+                        <div>
+                            <span>{{ forloop.counter }}º dia</span><br>
+                            <strong>{{ dia.data|date:"l, d/m/Y" }}</strong>
+                        </div>
+                        <div class="text-end">
+                            {% if dia.tipo == "feriado" %}
+                                <span class="fw-bold text-danger">{{ dia.tipo_feriado }}</span><br>
+                                <small>{{ dia.feriado_nome }}</small>
+                            {% elif dia.tipo == "fim_de_semana" %}
+                                <span class="text-warning">Final de Semana</span>
+                            {% else %}
+                                <span class="text-success">Dia Útil</span>
+                            {% endif %}
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+    // Popula os municípios com base no estado selecionado
+    const municipios = {{ municipios|safe }};
+    document.getElementById("estado").addEventListener("change", function () {
+        const estado = this.value;
+        const municipioSelect = document.getElementById("municipio");
+        municipioSelect.innerHTML = '<option value="">Selecione o Município</option>';
+
+        if (municipios[estado]) {
+            municipios[estado].forEach(m => {
+                const option = document.createElement("option");
+                option.value = m;
+                option.text = m;
+                municipioSelect.appendChild(option);
+            });
+        }
+    });
+</script>
+{% endblock %}

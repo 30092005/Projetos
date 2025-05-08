@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}E-mails Recentes{% endblock %}
+{% block content %}
+<h2>Últimos E-mails</h2>
+<ul class="list-group">
+  {% for email in emails %}
+    <li class="list-group-item">
+      <strong>{{ email.subject }}</strong><br>
+      <small>De: {{ email.from }} | Data: {{ email.date }}</small>
+    </li>
+  {% endfor %}
+</ul>
+{% endblock %}
